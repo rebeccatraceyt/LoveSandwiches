@@ -1,6 +1,9 @@
 import gspread
 from google.oauth2.service_account import Credentials
 
+# Every Google account has as an IAM (Identity and Access Management)
+# configuration which specifies what the user has access to.
+# The SCOPE lists the APIs that the program should access in order to run.
 
 SCOPE = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -30,7 +33,7 @@ def get_sales_data():
         if validate_data(sales_data):
             print("Data is valid!")
             break
-    
+
     return sales_data
 
 
@@ -60,7 +63,10 @@ def update_worksheet(data, worksheet):
     """
     print(f"Updating {worksheet} worksheet...\n")
     worksheet_to_update = SHEET.worksheet(worksheet)
+
+    # adds new row to the end of the current data
     worksheet_to_update.append_row(data)
+
     print(f"{worksheet} worksheet updated successfully\n")
 
 
@@ -111,10 +117,10 @@ def calculate_stock_data(data):
     for column in data:
         int_column = [int(num) for num in column]
         average = sum(int_column) / len(int_column)
-        stock_num = average * 1.1  
+        stock_num = average * 1.1
         # calculated average by 1.1 (10%)
         new_stock_data.append(round(stock_num))
-    
+
     return new_stock_data
 
 
@@ -125,12 +131,30 @@ def main():
     data = get_sales_data()
     sales_data = [int(num) for num in data]
     update_worksheet(sales_data, "sales")
+
     new_surplus_data = calculate_surplus_data(sales_data)
     update_worksheet(new_surplus_data, "surplus")
+
     sales_columns = get_last_5_entries_sales()
     stock_data = calculate_stock_data(sales_columns)
     update_worksheet(stock_data, "stock")
+    return stock_data
 
 
 print("Welcome to Love Sandwiches Data Automation")
-main()
+stock_data = main()
+
+
+def get_stock_values(data):
+    """
+    Challenge Code
+    """
+    headings = SHEET.worksheet("stock").row_values(1)
+
+    stock_dict = dict(zip(headings, data))
+
+    return stock_dict
+
+
+stock_values = get_stock_values(stock_data)
+print(stock_values)
